@@ -14,6 +14,8 @@ project:
   bidirectional: 0
   sequential: true
   testbench: "tb.v"
-
+  source_files:
+    . "project.v"
+    . "and.v"
 # If you have a logo (PNG, 240x240), you can add it like this:
 # logo: "logo.png"  
