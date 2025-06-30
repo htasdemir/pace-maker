@@ -14,7 +14,7 @@ project:
   bidirectional: 0
   sequential: true
   testbench: "tb.v"
-  top_module:  "tt_um_example" pace_maker
+  top_module:  "tt_um_example" pace maker
   source_files:
     . "project.v"
     . "and.v"
