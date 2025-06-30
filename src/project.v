@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 `default_nettype none
-module project (
+module tt_um_example (
     input  wire        clk,      // System clock
     input  wire [7:0]  io_in,    // Input pins (heartbeat, reset, etc.)
     output wire [7:0]  io_out,   // Output pins (pacing pulse, etc.)
