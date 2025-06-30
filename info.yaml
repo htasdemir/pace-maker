@@ -14,8 +14,9 @@ project:
   bidirectional: 0
   sequential: true
   testbench: "tb.v"
+  top_module:  "tt_um_example" pace maker
   source_files:
     . "project.v"
     . "and.v"
 # If you have a logo (PNG, 240x240), you can add it like this:
-# logo: "logo.png"  
+     logo: "logo.png"  
