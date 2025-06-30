@@ -1,40 +1,44 @@
 # SPDX-FileCopyrightText: © 2024 Tiny Tapeout
 # SPDX-License-Identifier: Apache-2.0
-
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import ClockCycles
-
+from cocotb.triggers import RisingEdge, Timer
 
 @cocotb.test()
-async def test_project(dut):
-    dut._log.info("Start")
+async def pacemaker_test(dut):
+    """ Test that pacemaker generates a pacing pulse when no heartbeat is detected """
 
-    # Set the clock period to 10 us (100 KHz)
-    clock = Clock(dut.clk, 10, units="us")
+    # Start the clock (12 MHz clock = period ~83ns)
+    clock = Clock(dut.clk, 83, units="ns")
     cocotb.start_soon(clock.start())
 
-    # Reset
-    dut._log.info("Reset")
-    dut.ena.value = 1
-    dut.ui_in.value = 0
-    dut.uio_in.value = 0
-    dut.rst_n.value = 0
-    await ClockCycles(dut.clk, 10)
-    dut.rst_n.value = 1
+    # Initial reset
+    dut.io_in.value = 0
+    dut._log.info("Applying reset...")
+    dut.io_in[1].value = 1  # Reset high
+    await Timer(100, units="ns")
+    dut.io_in[1].value = 0  # Release reset
 
-    dut._log.info("Test project behavior")
+    # Step 1: No heartbeat for long time → Expect pacing pulse
+    dut._log.info("Waiting for timeout to trigger pacing...")
+    pacing_detected = False
+    for cycle in range(30000000):  # Enough cycles to exceed TIMEOUT
+        await RisingEdge(dut.clk)
+        if dut.io_out[0].value == 1:
+            pacing_detected = True
+            dut._log.info(f"Pacing pulse generated at cycle {cycle}")
+            break
 
-    # Set the input values you want to test
-    dut.ui_in.value = 20
-    dut.uio_in.value = 30
+    assert pacing_detected, "Pacemaker did not generate pacing pulse after timeout!"
 
-    # Wait for one clock cycle to see the output values
-    await ClockCycles(dut.clk, 1)
+    # Step 2: Send a heartbeat, verify no pacing pulse is generated
+    dut.io_in[0].value = 1  # Simulate heartbeat pulse
+    await Timer(100, units="ns")
+    dut.io_in[0].value = 0
 
-    # The following assersion is just an example of how to check the output values.
-    # Change it to match the actual expected output of your module:
-    assert dut.uo_out.value == 50
+    dut._log.info("After heartbeat, checking no pacing pulse is generated soon after...")
+    for cycle in range(1000000):
+        await RisingEdge(dut.clk)
+        assert dut.io_out[0].value == 0, "Unexpected pacing pulse after heartbeat!"
 
-    # Keep testing the module by changing the input values, waiting for
-    # one or more clock cycles, and asserting the expected output values.
+    dut._log.info("Pacemaker passed both tests ✅")
