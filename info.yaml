@@ -1,21 +1,65 @@
-project:
-  name: "Simple Pacemaker Controller"
-  owner: "Your Name"
-  github_user: "htasdemir"
-  description: |
-    A simple digital pacemaker controller that generates a pacing pulse
-    if no heartbeat is detected within a preset timeout interval.
+import cocotb
+from cocotb.clock import Clock
+from cocotb.triggers import RisingEdge, Timer
 
-  language: "Verilog"
-  clock_hz: 12000000
-  inputs: 2
-  outputs: 1
-  bidirectional: 0
-  sequential: true
-  testbench: "tb.v"
-  source_files:
-    - "src/project.v"
-    - "src/user_module.v"
+@cocotb.test()
+async def pacemaker_test(dut):
+    clock = Clock(dut.clk, 83, units="ns")
+    cocotb.start_soon(clock.start())
 
-# Optional logo file (240x240 PNG)
-# logo: "logo.png"
+    dut.io_in.value = 0
+    dut.io_in[1].value = 1
+    await Timer(100, units="ns")
+    dut.io_in[1].value = 0
+
+    pacing_detected = False
+    for cycle in range(30000000):
+        await RisingEdge(dut.clk)
+        if dut.io_out[0].value == 1:
+            pacing_detected = True
+            break
+
+    assert pacing_detected, "Pacemaker did not generate pacing pulse after timeout!"
+
+    dut.io_in[0].value = 1
+    await Timer(100, units="ns")
+    dut.io_in[0].value = 0
+
+    for cycle in range(1000000):
+        await RisingEdge(dut.clk)
+        assert dut.io_out[0].value == 0, "Unexpected pacing pulse after heartbeat!"
+"""
+with open(os.path.join(final_project_path, "test.py"), "w") as f:
+    f.write(test_py)
+
+# Create tb.v
+tb_v = """\
+`default_nettype none
+`timescale 1ns / 1ps
+module tb;
+
+  initial begin
+    $dumpfile("tb.vcd");
+    $dumpvars(0, tb);
+    #1;
+  end
+
+  reg clk = 0;
+  reg rst_n = 1;
+  reg ena = 1;
+  reg [7:0] ui_in = 0;
+  reg [7:0] uio_in = 0;
+  wire [7:0] uo_out;
+  wire [7:0] uio_out;
+  wire [7:0] uio_oe;
+
+  always #41.6 clk = ~clk;
+
+  project dut (
+    .clk(clk),
+    .io_in(ui_in),
+    .io_out(uo_out),
+    .io_oeb(uio_oe)
+  );
+
+endmodule
