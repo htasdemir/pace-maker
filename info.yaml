@@ -1,21 +1,21 @@
 project:
-# Tiny Tapeout project information
   name: "Simple Pacemaker Controller"
   owner: "Your Name"
   github_user: "htasdemir"
   description: |
     A simple digital pacemaker controller that generates a pacing pulse
-    If no heartbeat is detected within a preset timeout interval.
+    if no heartbeat is detected within a preset timeout interval.
 
   language: "Verilog"
-  clock_hz: 12000000  # Tiny Tapeout standard clock (12 MHz)
-  inputs: 2           # Heartbeat sensor input, Reset input
-  outputs: 1          # Pacing pulse output
+  clock_hz: 12000000
+  inputs: 2
+  outputs: 1
   bidirectional: 0
   sequential: true
   testbench: "tb.v"
   source_files:
-    . "project.v"
-    . "and.v"
-# If you have a logo (PNG, 240x240), you can add it like this:
-     logo: "logo.png"  
+    - "src/project.v"
+    - "src/user_module.v"
+
+# Optional logo file (240x240 PNG)
+# logo: "logo.png"
