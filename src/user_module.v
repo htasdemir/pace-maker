@@ -1,14 +1,14 @@
 `default_nettype none
 module user_module(
     input wire clk,
-    input wire [7:0] io_in,   // io_in[0] = heartbeat_in
-    output wire [7:0] io_out  // io_out[0] = pace_out
+    input wire [7:0] io_in,
+    output wire [7:0] io_out
 );
 
     wire heartbeat_in = io_in[0];
     reg pace_out = 0;
 
-    parameter THRESHOLD = 24_000_000;  // Adjust for ~2 second timeout at 12 MHz
+    parameter THRESHOLD = 24_000_000;
     reg [31:0] timer = 0;
 
     always @(posedge clk) begin
@@ -27,6 +27,6 @@ module user_module(
     end
 
     assign io_out[0] = pace_out;
-    assign io_out[7:1] = 7'b0;  // Unused outputs set to 0
+    assign io_out[7:1] = 7'b0;
 
 endmodule
